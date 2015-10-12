@@ -9,8 +9,6 @@
 import UIKit
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
-    var items = Array<String>()
 
     @IBOutlet weak var tableView: UITableView!
     
@@ -18,8 +16,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        
-        items.append("Test")
     }
 
     override func didReceiveMemoryWarning() {
@@ -27,18 +23,28 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         // Dispose of any resources that can be recreated.
     }
     
+    func getItems() -> Array<String> {
+        let defaults = NSUserDefaults.standardUserDefaults()
+        var items = defaults.objectForKey("items") as? Array<String>
+        if (items == nil) {
+            items = Array<String>()
+            defaults.setObject(items, forKey: "items")
+        }
+        return items!
+    }
+    
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         return 1
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.items.count
+        return self.getItems().count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("todoItemCell", forIndexPath: indexPath)
         
-        cell.textLabel!.text = items[indexPath.row]
+        cell.textLabel!.text = getItems()[indexPath.row]
         
         return cell
     }
@@ -49,7 +55,9 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if (editingStyle == .Delete) {
+            var items = getItems()
             items.removeAtIndex(indexPath.row)
+            NSUserDefaults.standardUserDefaults().setObject(items, forKey: "items")
             tableView.reloadData()
         }
     }
@@ -68,7 +76,16 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             
             print("OK button pressed \(textField.text!)")
             
-            self.items.append(textField.text!)
+            
+            let defaults = NSUserDefaults.standardUserDefaults()
+            var currentItems = defaults.objectForKey("items") as? Array<String>
+            if (currentItems == nil) {
+                currentItems = Array<String>()
+            }
+            currentItems!.append(textField.text!)
+            
+            defaults.setObject(currentItems, forKey: "items")
+
             self.tableView.reloadData()
         }))
         
@@ -81,6 +98,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         self.presentViewController(dialog, animated: true, completion: nil);
     }
 
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        // Get the new view controller using segue.destinationViewController.
+        // Pass the selected object to the new view controller.
+        
+        let indexPath = self.tableView.indexPathForSelectedRow!
+        
+        let detailViewController = segue.destinationViewController as! DetailViewController
+        detailViewController.todoItem = self.getItems()[indexPath.row]
+    }
 
 }
 
