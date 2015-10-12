@@ -43,6 +43,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         return cell
     }
     
+    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if (editingStyle == .Delete) {
+            items.removeAtIndex(indexPath.row)
+            tableView.reloadData()
+        }
+    }
+    
     @IBAction func plusButtonPressed(sender: AnyObject) {
         let dialog = UIAlertController(title: "New Item", message: "What should your ToDo be called?", preferredStyle: UIAlertControllerStyle.Alert);
         
